@@ -16,13 +16,13 @@ int main() {
 
     // gliv work block
     gliv_init(&gliv_display, GLIV_MAX_WIDTH, GLIV_MAX_HEIGHT);
-    gliv_fill(&gliv_display, 0);
-    gliv_set_pixel(&gliv_display, 1, 63, 1); // that point that looks like an error
-    gliv_draw_line(&gliv_display, 0, 0, 0, 63, 1);
-    gliv_draw_line(&gliv_display, 0, 0, 63, 63, 1);
-    gliv_draw_line(&gliv_display, 0, 0, 127, 63, 1);
-    gliv_draw_line(&gliv_display, 0, 0, 127, 31, 1);
-    gliv_draw_line(&gliv_display, 0, 0, 127, 0, 1);
+    gliv_fill(&gliv_display, GLIV_COLOR_WHITE);
+    gliv_fill_pixel(&gliv_display, 1, 63, GLIV_COLOR_BLACK);    
+    gliv_draw_line(&gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 0, .x1 = 0, .y1 = 63, .color = GLIV_COLOR_BLACK});
+    gliv_draw_line(&gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 0, .x1 = 63, .y1 = 63, .color = GLIV_COLOR_BLACK});
+    gliv_draw_line(&gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 0, .x1 = 127, .y1 = 63, .color = GLIV_COLOR_BLACK});
+    gliv_draw_line(&gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 0, .x1 = 127, .y1 = 31, .color = GLIV_COLOR_BLACK});
+    gliv_draw_line(&gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 0, .x1 = 127, .y1 = 0, .color = GLIV_COLOR_BLACK});
 
     // example of getting an image from a library
     // get all the pixels
