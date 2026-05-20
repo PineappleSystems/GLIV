@@ -8,13 +8,16 @@ add_library(gliv STATIC
 
 target_include_directories(gliv PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/source
+    ${CMAKE_CURRENT_SOURCE_DIR}/examples
+    ${CMAKE_CURRENT_SOURCE_DIR}/examples/fonts
+    ${CMAKE_CURRENT_SOURCE_DIR}/examples/images
 )
 
 # example
 
 add_subdirectory(submodules/minifb)
 
-add_executable(gliv_windows_minifb_example example.c)
+add_executable(gliv_windows_minifb_example examples/pages.c)
 
 target_link_libraries(gliv_windows_minifb_example PRIVATE
     gliv
