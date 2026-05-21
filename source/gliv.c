@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include "gliv.h"
 
-static const uint32_t image_data_GLIV_ERROR[] = { 0x22028020, 0x92124150, 0x21404888, 0xffa00c }; // Data for displaying error indications on the display
+static const uint32_t gliv_error_image_data[] = { 0x22028020, 0x92124150, 0x21404888, 0xffa00c }; // Data for displaying error indications on the display
+static const gliv_image_res_t gliv_error_image_res = { .data = gliv_error_image_data, .width = 11, .height = 11 }; // Image resource for indicating an error on the display
 
 #define BITARRAY_WORD_BITS (8 * sizeof(unsigned int)) // Number of bits in one word
 
@@ -161,11 +162,11 @@ void gliv_draw_image(gliv_t* inst, gliv_image_t* image)
 	uint8_t x = image->x;
 	uint8_t y = image->y;
 
-    for(int img_x = 0; img_x < image->width; img_x++)
+    for(int img_x = 0; img_x < image->res->width; img_x++)
     {
-        for(int img_y = 0; img_y < image->height; img_y++)
+        for(int img_y = 0; img_y < image->res->height; img_y++)
         {
-            gliv_fill_pixel(inst, x + img_x, y + image->height - img_y - 1, (gliv_color_t)get_index(image->data, image->width * img_y + img_x));
+            gliv_fill_pixel(inst, x + img_x, y + image->res->height - img_y - 1, (gliv_color_t)get_index(image->res->data, image->res->width * img_y + img_x));
         }
     }
 }
@@ -185,7 +186,7 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 
 	if (total_char_width > label->width)
 	{
-		gliv_draw_image(inst, &(gliv_image_t){.x = label->x, .y = label->y, .data = image_data_GLIV_ERROR, .width = 11, .height = 11});
+		gliv_draw_image(inst, &(gliv_image_t){.x = label->x, .y = label->y, .res = &gliv_error_image_res});
 		return;
 	}
 
@@ -219,12 +220,16 @@ static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t
 	{
 		shift = 97;
 	}
-	
-	gliv_image_t tmp_image = { .x = x,
-								.y = y,
-								.data = font->data[character - shift],
-								.width = font->widths[character - shift],
-								.height = font->height};
+
+	gliv_image_t tmp_image = {
+		.x   = x,
+		.y   = y,
+		.res = &(const gliv_image_res_t){
+			.data   = font->data[character - shift],
+			.width  = font->widths[character - shift],
+			.height = font->height
+		}
+	};
 
     gliv_draw_image(inst, &tmp_image);
 }

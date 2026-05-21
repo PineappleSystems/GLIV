@@ -94,6 +94,13 @@ typedef struct gliv_label_s
     const gliv_font_t* const font;    
 } gliv_label_t;
 
+typedef struct gliv_image_res_s
+{
+    uint8_t width;
+    uint8_t height;
+    const unsigned int* data; // pointer to a bit field with image data
+} gliv_image_res_t;
+
 /**
  * \brief Image type
  */
@@ -101,10 +108,8 @@ typedef struct gliv_image_s
 {
     uint8_t x;
     uint8_t y;     
-    uint8_t width;
-    uint8_t height;
     gliv_color_t color;
-    const unsigned int* data; // pointer to a bit field with image data
+    const gliv_image_res_t* res;
 } gliv_image_t;
 
 /**

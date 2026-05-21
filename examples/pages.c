@@ -102,7 +102,7 @@ static void draw_page_0(gliv_t *gliv_display) {
 
 static void draw_page_1(gliv_t *gliv_display) {
     gliv_fill(gliv_display, GLIV_COLOR_BLACK);
-    gliv_draw_image(gliv_display, &(gliv_image_t){.x = (gliv_display->width - 52) / 2, .y = (gliv_display->height - 46) / 2, .data = logo_image_data, .width = 52, .height = 46});
+    gliv_draw_image(gliv_display, &(gliv_image_t){.x = (gliv_display->width - 52) / 2, .y = (gliv_display->height - 46) / 2, .res = &logo_image_res});
 }
 
 static void draw_page_2(gliv_t *gliv_display) {
@@ -118,7 +118,7 @@ static void draw_page_3(gliv_t *gliv_display) {
 static void draw_page_4(gliv_t *gliv_display) {
     gliv_fill(gliv_display, GLIV_COLOR_WHITE);
     gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 0, .width = 128, .height = 56, .color = GLIV_COLOR_BLACK, .filled = GLIV_FILL_SOLID});
-    gliv_draw_image(gliv_display, &(gliv_image_t){.x = (gliv_display->width - 14) / 2, .y = (56 - 7) / 2, .data = km_image_data, .width = 14, .height = 7});
+    gliv_draw_image(gliv_display, &(gliv_image_t){.x = (gliv_display->width - 14) / 2, .y = (56 - 7) / 2, .res = &km_image_res});
     gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 0, .width = 128, .height = 7, .color = GLIV_COLOR_WHITE, .filled = GLIV_FILL_NONE});
 }
 
