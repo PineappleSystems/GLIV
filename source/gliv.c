@@ -5,8 +5,6 @@
 static const uint32_t gliv_error_image_data[] = { 0x22028020, 0x92124150, 0x21404888, 0xffa00c }; // Data for displaying error indications on the display
 static const gliv_image_res_t gliv_error_image_res = { .data = gliv_error_image_data, .width = 11, .height = 11 }; // Image resource for indicating an error on the display
 
-#define BITARRAY_WORD_BITS (8 * sizeof(unsigned int)) // Number of bits in one word
-
 static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t* const font, char character);
 static uint8_t gliv_get_char_width(const gliv_font_t* const font, char character);
 static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
@@ -50,9 +48,9 @@ void gliv_fill(gliv_t* inst, gliv_color_t color)
     memset(inst->buffer, color ? 0xFF : 0x00, sizeof(inst->buffer));
 }
 
-void gliv_fill_pixel(gliv_t* inst, uint8_t x, uint8_t y, gliv_color_t color)
+void gliv_draw_pixel(gliv_t* inst, uint8_t x, uint8_t y, gliv_color_t color)
 {
-    if (color)
+    if (color == GLIV_COLOR_WHITE)
     {
         set_index(inst->buffer, inst->width * y + x);
 	}
@@ -102,7 +100,7 @@ void gliv_draw_line(gliv_t* inst, gliv_line_t* line)
 
     while (1)
     {
-        gliv_fill_pixel(inst, x0, y0, line->color);
+        gliv_draw_pixel(inst, x0, y0, line->color);
         if (x0 == x1 && y0 == y1)
 		{
             break;
@@ -150,10 +148,10 @@ void gliv_draw_rectangle(gliv_t* inst, gliv_rectangle_t* rectangle)
 	}
 	else // GLIV_FILL_NONE
 	{
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x + w, .y1 = y, .color = color}); // Bottom edge
+		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x + w, .y1 = y, .color = color}); // Top edge
 		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x, .y1 = y + h, .color = color}); // Left edge
 		gliv_draw_line(inst, &(gliv_line_t){.x0 = x + w, .y0 = y, .x1 = x + w, .y1 = y + h, .color = color}); // Right edge
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y + h, .x1 = x + w, .y1 = y + h, .color = color}); // Top edge
+		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y + h, .x1 = x + w, .y1 = y + h, .color = color}); // Bottom edge
 	}
 }
 
@@ -166,7 +164,7 @@ void gliv_draw_image(gliv_t* inst, gliv_image_t* image)
     {
         for(int img_y = 0; img_y < image->res->height; img_y++)
         {
-            gliv_fill_pixel(inst, x + img_x, y + image->res->height - img_y - 1, (gliv_color_t)get_index(image->res->data, image->res->width * img_y + img_x));
+            gliv_draw_pixel(inst, x + img_x, y + img_y, (gliv_color_t)get_index(image->res->data, image->res->width * img_y + img_x));
         }
     }
 }
@@ -285,9 +283,9 @@ static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
     // Vertical alignment
     switch (align)
 	{
-        case GLIV_ALIGN_BOTTOM_LEFT:
-        case GLIV_ALIGN_BOTTOM_CENTER:
-        case GLIV_ALIGN_BOTTOM_RIGHT:
+        case GLIV_ALIGN_TOP_LEFT:
+        case GLIV_ALIGN_TOP_CENTER:
+        case GLIV_ALIGN_TOP_RIGHT:
             *obj_y = area_y;
             break;
         case GLIV_ALIGN_MIDDLE_LEFT:
@@ -295,7 +293,7 @@ static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
         case GLIV_ALIGN_MIDDLE_RIGHT:
             *obj_y = area_y + (area_h - obj_h) / 2;
             break;
-        default: // TOP
+        default: // BOTTOM
             *obj_y = area_y + (area_h - obj_h);
             break;
     }

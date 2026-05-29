@@ -7,6 +7,8 @@
 #define GLIV_MAX_WIDTH 128
 #define GLIV_MAX_HEIGHT 64
 
+#define BITARRAY_WORD_BITS (8 * sizeof(unsigned int)) // Number of bits in one word
+
 /**
  * \brief Color
  */
@@ -94,6 +96,9 @@ typedef struct gliv_label_s
     const gliv_font_t* const font;    
 } gliv_label_t;
 
+/**
+ * \brief Image resource type
+ */
 typedef struct gliv_image_res_s
 {
     uint8_t width;
@@ -109,7 +114,7 @@ typedef struct gliv_image_s
     uint8_t x;
     uint8_t y;     
     gliv_color_t color;
-    const gliv_image_res_t* res;
+    const gliv_image_res_t* res; // pointer to a image resource
 } gliv_image_t;
 
 /**
@@ -117,7 +122,7 @@ typedef struct gliv_image_s
  */
 typedef struct gliv_s
 {
-    unsigned int buffer[GLIV_MAX_WIDTH * GLIV_MAX_HEIGHT / sizeof(unsigned int)];
+    unsigned int buffer[GLIV_MAX_WIDTH * GLIV_MAX_HEIGHT / BITARRAY_WORD_BITS];
     uint8_t width;
     uint8_t height;
 } gliv_t;
@@ -137,7 +142,7 @@ void gliv_init(gliv_t* inst, uint8_t width, uint8_t height);
  */
 void gliv_fill(gliv_t* inst, gliv_color_t color);
 
-void gliv_fill_pixel(gliv_t* inst, uint8_t x, uint8_t y, gliv_color_t color);
+void gliv_draw_pixel(gliv_t* inst, uint8_t x, uint8_t y, gliv_color_t color);
 
 uint8_t gliv_get_pixel(gliv_t* inst, uint8_t x, uint8_t y);
 
