@@ -13,8 +13,8 @@ target_include_directories(gliv PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/examples/images
 )
 
-# example
-
+# ----------- examples -----------
+# pages
 add_subdirectory(submodules/minifb)
 
 add_executable(gliv_windows_minifb_example examples/pages.c)
@@ -24,5 +24,12 @@ target_link_libraries(gliv_windows_minifb_example PRIVATE
     minifb)
 
 target_include_directories(gliv_windows_minifb_example PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/source
+)
+
+# pbm
+add_executable(gliv_windows_pbm_export_example examples/pbm.c)
+target_link_libraries(gliv_windows_pbm_export_example PRIVATE gliv)
+target_include_directories(gliv_windows_pbm_export_example PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/source
 )
