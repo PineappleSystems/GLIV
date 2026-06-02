@@ -177,7 +177,7 @@ int main() {
                 gliv_draw_pixel(&gliv_display, food.x, food.y, GLIV_COLOR_WHITE);
             } else {
                 gliv_fill(&gliv_display, GLIV_COLOR_BLACK);
-                gliv_label_t lbl_score = {.x = 0, .y = 0, .font = &arial_bold_39_num, .width = 128, .height = 64, .align = GLIV_ALIGN_MIDDLE_CENTER};
+                gliv_label_t lbl_score = {.x = 0, .y = 0, .font = &arial_bold_39_num, .width = 128, .height = 64, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER};
                 snprintf(lbl_score.text, sizeof(lbl_score.text), "%d", score);
                 gliv_draw_label(&gliv_display, &lbl_score);
                 
