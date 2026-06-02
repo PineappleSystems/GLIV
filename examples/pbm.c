@@ -26,8 +26,8 @@ size_t generate_pbm_data(gliv_t *gliv_instance, uint8_t *out_data) {
                 int x = byte_x * 8 + bit;
                 if (x >= GLIV_MAX_WIDTH) break;
                 
-                uint8_t pixel = gliv_get_pixel(gliv_instance, x, y);
-                if (pixel) {
+                gliv_color_t pixel = gliv_get_pixel(gliv_instance, x, y);
+                if (pixel == GLIV_COLOR_BLACK) {
                     byte |= (1 << (7 - bit)); // 1 = black
                 }
             }

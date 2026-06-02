@@ -79,6 +79,8 @@ typedef struct gliv_font_s
     const unsigned int** data;    // pointer to an array of font chars
     const uint8_t* widths;        // pointer to character widths
     const uint8_t height;
+    const uint8_t first;          // first character code
+    const uint8_t last;           // last character code
 } gliv_font_t;
 
 /**
@@ -88,10 +90,10 @@ typedef struct gliv_label_s
 {
     uint8_t x;
     uint8_t y;    
-    char text[8];
+    char text[32];
     uint8_t width;
     uint8_t height;
-    gliv_color_t color;
+    gliv_color_t color; // text color (background color is inverted)
     gliv_align_t align;
     const gliv_font_t* const font;    
 } gliv_label_t;
@@ -113,7 +115,7 @@ typedef struct gliv_image_s
 {
     uint8_t x;
     uint8_t y;     
-    gliv_color_t color;
+    gliv_color_t color; // image color (background color is inverted)
     const gliv_image_res_t* res; // pointer to a image resource
 } gliv_image_t;
 
@@ -144,7 +146,7 @@ void gliv_fill(gliv_t* inst, gliv_color_t color);
 
 void gliv_draw_pixel(gliv_t* inst, uint8_t x, uint8_t y, gliv_color_t color);
 
-uint8_t gliv_get_pixel(gliv_t* inst, uint8_t x, uint8_t y);
+gliv_color_t gliv_get_pixel(gliv_t* inst, uint8_t x, uint8_t y);
 
 void gliv_draw_line(gliv_t* inst, gliv_line_t* line);
 

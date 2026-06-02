@@ -5,7 +5,7 @@
 static const uint32_t gliv_error_image_data[] = { 0x22028020, 0x92124150, 0x21404888, 0xffa00c }; // Data for displaying error indications on the display
 static const gliv_image_res_t gliv_error_image_res = { .data = gliv_error_image_data, .width = 11, .height = 11 }; // Image resource for indicating an error on the display
 
-static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t* const font, char character);
+static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t* const font, gliv_color_t color, char character);
 static uint8_t gliv_get_char_width(const gliv_font_t* const font, char character);
 static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
 						   uint8_t area_w, uint8_t area_h, 
@@ -60,9 +60,9 @@ void gliv_draw_pixel(gliv_t* inst, uint8_t x, uint8_t y, gliv_color_t color)
 	}
 }
 
-uint8_t gliv_get_pixel(gliv_t* inst, uint8_t x, uint8_t y)
+gliv_color_t gliv_get_pixel(gliv_t* inst, uint8_t x, uint8_t y)
 {
-    return get_index(inst->buffer, inst->width * y + x);
+    return (gliv_color_t)get_index(inst->buffer, inst->width * y + x);
 }
 
 void gliv_draw_line(gliv_t* inst, gliv_line_t* line)
@@ -164,7 +164,9 @@ void gliv_draw_image(gliv_t* inst, gliv_image_t* image)
     {
         for(int img_y = 0; img_y < image->res->height; img_y++)
         {
-            gliv_draw_pixel(inst, x + img_x, y + img_y, (gliv_color_t)get_index(image->res->data, image->res->width * img_y + img_x));
+			gliv_color_t res_color = (gliv_color_t)get_index(image->res->data, image->res->width * img_y + img_x);
+			gliv_color_t pixel_color = res_color ^ (image->color != GLIV_COLOR_WHITE);
+            gliv_draw_pixel(inst, x + img_x, y + img_y, pixel_color);
         }
     }
 }
@@ -184,7 +186,7 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 
 	if (total_char_width > label->width)
 	{
-		gliv_draw_image(inst, &(gliv_image_t){.x = label->x, .y = label->y, .res = &gliv_error_image_res});
+		gliv_draw_image(inst, &(gliv_image_t){.x = label->x, .y = label->y, .color = label->color, .res = &gliv_error_image_res});
 		return;
 	}
 
@@ -196,64 +198,44 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
     uint8_t current_x = a_x;
     for (uint8_t i = 0; i < len; i++)
 	{
-        gliv_draw_char(inst, current_x, a_y, label->font, label->text[i]);
+        gliv_draw_char(inst, current_x, a_y, label->font, label->color, label->text[i]);
         current_x += gliv_get_char_width(label->font, label->text[i]);
 		current_x++; // add space between characters
     }
 }
 
-static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t* const font, char character)
+static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t* const font, gliv_color_t color, char character)
 {
-	uint8_t shift = 0; // ASCII table offset
-
-	if(character >= '0' && character <= '9')
+	if (character >= font->first && character <= font->last)
 	{
-		shift = 48;
-	}
-	else if (character >= 'A' && character <= 'Z')
-	{
-		shift = 65;
-	}
-	else if (character >= 'a' && character <= 'z')
-	{
-		shift = 97;
-	}
+		uint8_t offset = character - font->first; // character offset
 
-	gliv_image_t tmp_image = {
-		.x   = x,
-		.y   = y,
-		.res = &(const gliv_image_res_t){
-			.data   = font->data[character - shift],
-			.width  = font->widths[character - shift],
-			.height = font->height
-		}
-	};
+		gliv_image_t tmp_image = {
+			.x   = x,
+			.y   = y,
+			.color = color,
+			.res = &(const gliv_image_res_t){
+				.data   = font->data[offset],
+				.width  = font->widths[offset],
+				.height = font->height
+			}
+		};
 
-    gliv_draw_image(inst, &tmp_image);
+		gliv_draw_image(inst, &tmp_image);
+	}
 }
 
 static uint8_t gliv_get_char_width(const gliv_font_t* const font, char character)
 {
-	uint8_t shift = 0; // ASCII offset
+	uint8_t width = 0;
 
-	if(character >= '0' && character <= '9')
+	if (character >= font->first && character <= font->last)
 	{
-		shift = 48;
-	}
-	else if (character >= 'A' && character <= 'Z')
-	{
-		shift = 65;
-	}
-	else if (character >= 'a' && character <= 'z')
-	{
-		shift = 97;
-	}
-	else
-	{
-		return 0; // if the symbol is invalid
+		uint8_t offset = character - font->first; // character offset
+		width = font->widths[offset];
 	}
 	
-	return font->widths[character - shift];
+	return width;
 }
 
 static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
