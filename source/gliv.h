@@ -9,6 +9,8 @@
 
 #define BITARRAY_WORD_BITS (8 * sizeof(unsigned int)) // Number of bits in one word
 
+#define GLIV_LABEL_TEXT_LENGTH 32
+
 /**
  * \brief Color
  */
@@ -72,15 +74,25 @@ typedef struct gliv_rectangle_s
 } gliv_rectangle_t;
 
 /**
+ * \brief Font characters block type
+ */
+typedef struct gliv_font_char_block_s
+{
+    const uint16_t first;          // first character code
+    const uint16_t last;           // last character code
+    const uint16_t offset;         // block start position
+} gliv_font_char_block_t;
+
+/**
  * \brief Font type
  */
 typedef struct gliv_font_s
 {
-    const unsigned int** data;    // pointer to an array of font chars
-    const uint8_t* widths;        // pointer to character widths
+    const unsigned int** data;             // pointer to an array of font chars
+    const uint8_t* widths;                 // pointer to character widths
     const uint8_t height;
-    const uint8_t first;          // first character code
-    const uint8_t last;           // last character code
+    const uint8_t num_of_blocks;
+    const gliv_font_char_block_t *blocks;  // pointer to font characters blocks parameters
 } gliv_font_t;
 
 /**
@@ -90,7 +102,7 @@ typedef struct gliv_label_s
 {
     uint8_t x;
     uint8_t y;    
-    char text[32];
+    char text[GLIV_LABEL_TEXT_LENGTH];
     uint8_t width;
     uint8_t height;
     gliv_color_t color; // text color (background color is inverted)

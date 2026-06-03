@@ -110,6 +110,7 @@ static void draw_page_3(gliv_t *gliv_display) {
     gliv_fill(gliv_display, GLIV_COLOR_BLACK);
     gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = gliv_display->height / 2, .x1 = gliv_display->width, .y1 = gliv_display->height / 2, .color = GLIV_COLOR_WHITE});
     gliv_draw_label(gliv_display, &(gliv_label_t){.x = 0, .y = 0, .font = &arial_14, .width = 128, .height = 32, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER, .text = "page 3"});
+    gliv_draw_label(gliv_display, &(gliv_label_t){.x = 0, .y = 32, .font = &arial_14, .width = 128, .height = 32, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER, .text = "страница 3"});
 }
 
 static void draw_page_4(gliv_t *gliv_display) {    

@@ -25,10 +25,14 @@ static const uint8_t arial_bold_39_num_font_widths[] = {
     25, 17, 25, 24, 29, 26, 25, 25, 24, 25
 };
 
+static const gliv_font_char_block_t arial_bold_39_num_font_char_blocks[] = {
+    { .first = 48, .last = 57, .offset = 0 }
+};
+
 const gliv_font_t arial_bold_39_num = {.data = arial_bold_39_num_font_data,
                                         .widths = arial_bold_39_num_font_widths,
                                         .height = 39,
-                                        .first = 48,
-                                        .last = 57};
+                                        .num_of_blocks = 1,
+                                        .blocks = arial_bold_39_num_font_char_blocks};
 
 #endif /* ARIAL_BOLD_39_NUM_H */

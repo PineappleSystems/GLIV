@@ -5,13 +5,14 @@
 static const uint32_t gliv_error_image_data[] = { 0x22028020, 0x92124150, 0x21404888, 0xffa00c }; // Data for displaying error indications on the display
 static const gliv_image_res_t gliv_error_image_res = { .data = gliv_error_image_data, .width = 11, .height = 11 }; // Image resource for indicating an error on the display
 
-static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t* const font, gliv_color_t color, char character);
-static uint8_t gliv_get_char_width(const gliv_font_t* const font, char character);
+static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t* const font, gliv_color_t color, uint16_t char_offset);
+static uint8_t gliv_get_char_width(const gliv_font_t* const font, uint16_t char_offset);
 static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
 						   uint8_t area_w, uint8_t area_h, 
                            uint8_t obj_w, uint8_t obj_h, 
                            gliv_align_t align, 
                            uint8_t *obj_x, uint8_t *obj_y);
+static uint16_t utf8_to_unicode(const char *text, uint8_t *utf8_bytes);
 
 /**
  * \brief Setting the value of a bit array to 1
@@ -173,18 +174,47 @@ void gliv_draw_image(gliv_t* inst, gliv_image_t* image)
 
 void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 {
-    uint8_t len = strlen(label->text); // String length
-    uint8_t total_char_width = 0;
+    uint8_t text_len = strlen(label->text); // String length in bytes
 
-    // Calculate total text width in pixels
-    for (uint8_t i = 0; i < len; i++)
+    // Calculate total text width in pixels and get characters offset
+	uint8_t byte_idx = 0;
+	uint8_t char_count = 0;
+	uint8_t utf8_bytes = 0;
+	uint8_t text_width = 0;
+	uint16_t char_offsets[GLIV_LABEL_TEXT_LENGTH];
+
+    while (byte_idx < text_len && char_count < GLIV_LABEL_TEXT_LENGTH)
 	{
-        total_char_width += gliv_get_char_width(label->font, label->text[i]);
-    }
-	
-	total_char_width += len - 1; // account for a 1-pixel gap between characters
+		uint16_t unicode = utf8_to_unicode(&label->text[byte_idx], &utf8_bytes);
 
-	if (total_char_width > label->width)
+		if (utf8_bytes != 0)
+		{
+			for (int i = 0; i < label->font->num_of_blocks; i++)
+			{
+				if (unicode >= label->font->blocks[i].first && unicode <= label->font->blocks[i].last)
+				{
+					char_offsets[char_count] = label->font->blocks[i].offset + (unicode - label->font->blocks[i].first);
+					text_width += gliv_get_char_width(label->font, char_offsets[char_count]);
+					char_count++;
+					break;
+				}
+			}
+			
+			byte_idx += utf8_bytes;
+		}
+		else
+		{
+			byte_idx++;
+		}
+        
+    }
+
+	if (char_count > 0)
+	{
+		text_width += char_count - 1; // account for a 1-pixel gap between characters
+	}
+
+	if (text_width > label->width)
 	{
 		gliv_draw_image(inst, &(gliv_image_t){.x = label->x, .y = label->y, .color = label->color, .res = &gliv_error_image_res});
 		return;
@@ -192,48 +222,39 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 
     // Calculate initial x and y coordinates based on alignment
 	uint8_t a_x = 0, a_y = 0;
-	gliv_get_aligned_pos(label->x, label->y, label->width, label->height, total_char_width, label->font->height, label->align, &a_x, &a_y);
+	gliv_get_aligned_pos(label->x, label->y, label->width, label->height, text_width, label->font->height, label->align, &a_x, &a_y);
 
     // Render each character of the text string
     uint8_t current_x = a_x;
-    for (uint8_t i = 0; i < len; i++)
+	
+	for (int i = 0; i < char_count; i++)
 	{
-        gliv_draw_char(inst, current_x, a_y, label->font, label->color, label->text[i]);
-        current_x += gliv_get_char_width(label->font, label->text[i]);
+
+		gliv_draw_char(inst, current_x, a_y, label->font, label->color, char_offsets[i]);
+		current_x += gliv_get_char_width(label->font, char_offsets[i]);
 		current_x++; // add space between characters
     }
 }
 
-static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t* const font, gliv_color_t color, char character)
+static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, const gliv_font_t* const font, gliv_color_t color, uint16_t char_offset)
 {
-	if (character >= font->first && character <= font->last)
-	{
-		uint8_t offset = character - font->first; // character offset
+	gliv_image_t tmp_image = {
+		.x   = x,
+		.y   = y,
+		.color = color,
+		.res = &(const gliv_image_res_t){
+			.data   = font->data[char_offset],
+			.width  = font->widths[char_offset],
+			.height = font->height
+		}
+	};
 
-		gliv_image_t tmp_image = {
-			.x   = x,
-			.y   = y,
-			.color = color,
-			.res = &(const gliv_image_res_t){
-				.data   = font->data[offset],
-				.width  = font->widths[offset],
-				.height = font->height
-			}
-		};
-
-		gliv_draw_image(inst, &tmp_image);
-	}
+	gliv_draw_image(inst, &tmp_image);
 }
 
-static uint8_t gliv_get_char_width(const gliv_font_t* const font, char character)
+static uint8_t gliv_get_char_width(const gliv_font_t* const font, uint16_t char_offset)
 {
-	uint8_t width = 0;
-
-	if (character >= font->first && character <= font->last)
-	{
-		uint8_t offset = character - font->first; // character offset
-		width = font->widths[offset];
-	}
+	uint8_t width = font->widths[char_offset];
 	
 	return width;
 }
@@ -279,4 +300,42 @@ static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
             *obj_y = area_y + (area_h - obj_h);
             break;
     }
+}
+
+// 4 bytes characters are not included
+static uint16_t utf8_to_unicode(const char *text, uint8_t *utf8_bytes)
+{	
+    *utf8_bytes = 0;
+    uint16_t unicode = 0;
+
+    uint8_t b0 = (uint8_t)text[0];
+
+    if ((b0 & 0x80) == 0) // 1 byte
+    {
+        unicode = b0;
+        *utf8_bytes = 1;
+    }
+    else if ((b0 & 0xE0) == 0xC0) // 2 bytes
+    {
+        if (text[1] != '\0')
+        {
+			uint8_t b1 = (uint8_t)text[1];
+
+            unicode = ((b0 & 0x1F) << 6) | (b1 & 0x3F);
+            *utf8_bytes = 2;
+        }
+    }
+    else if ((b0 & 0xF0) == 0xE0) // 3 bytes
+    {
+        if (text[1] != '\0' && text[2] != '\0')
+        {
+			uint8_t b1 = (uint8_t)text[1];
+			uint8_t b2 = (uint8_t)text[2];
+
+            unicode = ((b0 & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F);
+            *utf8_bytes = 3;
+        }
+    }
+
+    return unicode;
 }
