@@ -9,7 +9,7 @@
 
 #define BITARRAY_WORD_BITS (8 * sizeof(unsigned int)) // Number of bits in one word
 
-#define GLIV_LABEL_TEXT_LENGTH 32
+#define GLIV_LABEL_TEXT_MAX_LENGTH 128
 
 /**
  * \brief Color
@@ -102,12 +102,12 @@ typedef struct gliv_label_s
 {
     uint8_t x;
     uint8_t y;    
-    char text[GLIV_LABEL_TEXT_LENGTH];
+    char* text;
     uint8_t width;
     uint8_t height;
     gliv_color_t color; // text color (background color is inverted)
     gliv_align_t align;
-    const gliv_font_t* const font;    
+    const gliv_font_t* font;    
 } gliv_label_t;
 
 /**
@@ -126,7 +126,9 @@ typedef struct gliv_image_res_s
 typedef struct gliv_image_s
 {
     uint8_t x;
-    uint8_t y;     
+    uint8_t y;
+    uint8_t width; // image container width
+    uint8_t height; // image container height
     gliv_color_t color; // image color (background color is inverted)
     const gliv_image_res_t* res; // pointer to a image resource
 } gliv_image_t;
