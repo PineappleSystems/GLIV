@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include "minifb.h"
 #include "gliv.h"
 
@@ -103,25 +102,25 @@ static void draw_page_1(gliv_t *gliv_display) {
 
 static void draw_page_2(gliv_t *gliv_display) {
     gliv_fill(gliv_display, GLIV_COLOR_WHITE);
-    gliv_draw_image(gliv_display, &(gliv_image_t){.x = (gliv_display->width - 52) / 2, .y = (gliv_display->height - 46) / 2, .width = gliv_display->width, .height = gliv_display->height, .color = GLIV_COLOR_BLACK, .res = &logo_image_res});
+    gliv_draw_image(gliv_display, &(gliv_image_t){.x = (gliv_display->width - 52) / 2, .y = (gliv_display->height - 46) / 2, .width = gliv_display->width, .height = gliv_display->height, .bg_transparent = true, .color = GLIV_COLOR_BLACK, .res = &logo_image_res});
 }
 
 static void draw_page_3(gliv_t *gliv_display) {
     gliv_fill(gliv_display, GLIV_COLOR_BLACK);
     gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = gliv_display->height / 2, .x1 = gliv_display->width, .y1 = gliv_display->height / 2, .color = GLIV_COLOR_WHITE});
-    gliv_draw_label(gliv_display, &(gliv_label_t){.x = 0, .y = 0, .font = &arial_14, .width = 128, .height = 31, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER, .text = "page 3"});
-    gliv_draw_label(gliv_display, &(gliv_label_t){.x = 0, .y = 33, .font = &arial_14, .width = 128, .height = 30, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER, .text = "страница 3"});
+    gliv_draw_label(gliv_display, &(gliv_label_t){.x = 0, .y = 0, .font = &arial_14, .width = 128, .height = 31, .bg_transparent = true,.color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER, .text = "page 3"});
+    gliv_draw_label(gliv_display, &(gliv_label_t){.x = 0, .y = 33, .font = &arial_14, .width = 128, .height = 30, .bg_transparent = true, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER, .text = "страница 3"});
 }
 
 static void draw_page_4(gliv_t *gliv_display) {    
     gliv_fill(gliv_display, GLIV_COLOR_BLACK);
-    gliv_draw_label(gliv_display, &(gliv_label_t){.x = 0, .y = 0, .font = &arial_bold_39_num, .width = 128, .height = 64, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER, .text = "278"});
+    gliv_draw_label(gliv_display, &(gliv_label_t){.x = 0, .y = 0, .font = &arial_bold_39_num, .width = 128, .height = 64, .bg_transparent = true, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER, .text = "278"});
 }
 
 static void draw_page_5(gliv_t *gliv_display) {
     gliv_fill(gliv_display, GLIV_COLOR_WHITE);
     gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 7, .width = 128, .height = 56, .color = GLIV_COLOR_BLACK, .filled = GLIV_FILL_SOLID});
-    gliv_draw_image(gliv_display, &(gliv_image_t){.x = (gliv_display->width - 14) / 2, .y = 7 + (56 - 7) / 2, .width = gliv_display->width, .height = gliv_display->height, .color = GLIV_COLOR_WHITE, .res = &km_image_res});
+    gliv_draw_image(gliv_display, &(gliv_image_t){.x = (gliv_display->width - 14) / 2, .y = 7 + (56 - 7) / 2, .width = gliv_display->width, .height = gliv_display->height, .bg_transparent = true, .color = GLIV_COLOR_WHITE, .res = &km_image_res});
     gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 56, .width = 128, .height = 7, .color = GLIV_COLOR_WHITE, .filled = GLIV_FILL_NONE});
 }
 

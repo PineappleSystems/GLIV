@@ -2,12 +2,13 @@
 #define GLIV_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 // maximum screen sizes for static memory allocation
 #define GLIV_MAX_WIDTH 128
 #define GLIV_MAX_HEIGHT 64
 
-#define BITARRAY_WORD_BITS (8 * sizeof(unsigned int)) // Number of bits in one word
+#define GLIV_BITARRAY_WORD_BITS (8 * sizeof(unsigned int)) // Number of bits in one word
 
 #define GLIV_LABEL_TEXT_MAX_LENGTH 128
 
@@ -105,6 +106,7 @@ typedef struct gliv_label_s
     char* text;
     uint8_t width;
     uint8_t height;
+    bool bg_transparent; // true: transparent background, false: opaque
     gliv_color_t color; // text color (background color is inverted)
     gliv_align_t align;
     const gliv_font_t* font;    
@@ -129,6 +131,7 @@ typedef struct gliv_image_s
     uint8_t y;
     uint8_t width; // image container width
     uint8_t height; // image container height
+    bool bg_transparent; // true: transparent background, false: opaque
     gliv_color_t color; // image color (background color is inverted)
     const gliv_image_res_t* res; // pointer to a image resource
 } gliv_image_t;
@@ -138,7 +141,7 @@ typedef struct gliv_image_s
  */
 typedef struct gliv_s
 {
-    unsigned int buffer[GLIV_MAX_WIDTH * GLIV_MAX_HEIGHT / BITARRAY_WORD_BITS];
+    unsigned int buffer[GLIV_MAX_WIDTH * GLIV_MAX_HEIGHT / GLIV_BITARRAY_WORD_BITS];
     uint8_t width;
     uint8_t height;
 } gliv_t;

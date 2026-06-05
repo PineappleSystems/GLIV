@@ -5,21 +5,19 @@
 static const uint32_t gliv_error_image_data[] = { 0x22028020, 0x92124150, 0x21404888, 0xffa00c }; // Data for displaying error indications on the display
 static const gliv_image_res_t gliv_error_image_res = { .data = gliv_error_image_data, .width = 11, .height = 11 }; // Image resource for indicating an error on the display
 
-static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, uint8_t max_x, uint8_t max_y, const gliv_font_t* const font, gliv_color_t color, uint16_t char_offset);
-static uint8_t gliv_get_char_width(const gliv_font_t* const font, uint16_t char_offset);
 static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
 						   uint8_t area_w, uint8_t area_h, 
                            uint8_t obj_w, uint8_t obj_h, 
                            gliv_align_t align, 
                            uint8_t *obj_x, uint8_t *obj_y);
-static uint16_t utf8_to_unicode(const char *text, uint8_t *utf8_bytes);
+static uint16_t gliv_utf8_to_unicode(const char *text, uint8_t *utf8_bytes);
 
 /**
  * \brief Setting the value of a bit array to 1
  */
 static inline void set_index(unsigned int * bitarray, size_t idx)
 {
-    bitarray[idx / BITARRAY_WORD_BITS] |= (1 << (idx % BITARRAY_WORD_BITS));
+    bitarray[idx / GLIV_BITARRAY_WORD_BITS] |= (1 << (idx % GLIV_BITARRAY_WORD_BITS));
 }
 
 /**
@@ -27,7 +25,7 @@ static inline void set_index(unsigned int * bitarray, size_t idx)
  */
 static inline void reset_index(unsigned int * bitarray, size_t idx)
 {
-    bitarray[idx / BITARRAY_WORD_BITS] &= ~(1 << (idx % BITARRAY_WORD_BITS));
+    bitarray[idx / GLIV_BITARRAY_WORD_BITS] &= ~(1 << (idx % GLIV_BITARRAY_WORD_BITS));
 }
 
 /**
@@ -35,7 +33,7 @@ static inline void reset_index(unsigned int * bitarray, size_t idx)
  */
 static inline uint8_t get_index(const unsigned int* const bitarray, size_t idx)
 {
-    return bitarray[idx / BITARRAY_WORD_BITS] >> (idx % BITARRAY_WORD_BITS) & 0x1;
+    return bitarray[idx / GLIV_BITARRAY_WORD_BITS] >> (idx % GLIV_BITARRAY_WORD_BITS) & 0x1;
 }
 
 void gliv_init(gliv_t* inst, uint8_t width, uint8_t height)
@@ -170,6 +168,12 @@ void gliv_draw_image(gliv_t* inst, gliv_image_t* image)
         {
 			gliv_color_t res_color = (gliv_color_t)get_index(image->res->data, image->res->width * img_y + img_x);
 			gliv_color_t pixel_color = res_color ^ (image->color != GLIV_COLOR_WHITE);
+			
+			if (pixel_color != image->color && image->bg_transparent) // skip transparent background pixels
+			{
+				continue;
+			}
+
             gliv_draw_pixel(inst, x + img_x, y + img_y, pixel_color);
         }
     }
@@ -189,7 +193,7 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 
     while (byte_idx < text_len && char_count < GLIV_LABEL_TEXT_MAX_LENGTH)
 	{
-		uint16_t unicode = utf8_to_unicode(&label->text[byte_idx], &utf8_bytes);
+		uint16_t unicode = gliv_utf8_to_unicode(&label->text[byte_idx], &utf8_bytes);
 
 		if (utf8_bytes != 0)
 		{
@@ -198,7 +202,7 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 				if (unicode >= label->font->blocks[i].first && unicode <= label->font->blocks[i].last)
 				{
 					char_offsets[char_count] = label->font->blocks[i].offset + (unicode - label->font->blocks[i].first);
-					text_width += gliv_get_char_width(label->font, char_offsets[char_count]);
+					text_width += label->font->widths[char_offsets[char_count]];
 					char_count++;
 					break;
 				}
@@ -224,9 +228,12 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 	}
 	text_heigth = label->height > label->font->height ? label->font->height : label->height;
 
-	// Fill label background
-	gliv_color_t background_color = label->color == GLIV_COLOR_WHITE ? GLIV_COLOR_BLACK : GLIV_COLOR_WHITE;
-	gliv_draw_rectangle(inst, &(gliv_rectangle_t){.x = label->x, .y = label->y, .width = label->width, .height = label->height, .color = background_color, .filled = GLIV_FILL_SOLID});
+	// Fill label background if it is not transparent
+	if (!label->bg_transparent)
+	{
+		gliv_color_t background_color = label->color == GLIV_COLOR_WHITE ? GLIV_COLOR_BLACK : GLIV_COLOR_WHITE;
+		gliv_draw_rectangle(inst, &(gliv_rectangle_t){.x = label->x, .y = label->y, .width = label->width, .height = label->height, .color = background_color, .filled = GLIV_FILL_SOLID});
+	}
 
     // Calculate initial x and y coordinates based on alignment
 	uint8_t a_x = 0, a_y = 0;
@@ -243,38 +250,29 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 		{
 			break;
 		}
-		gliv_draw_char(inst, current_x, a_y, max_x, max_y, label->font, label->color, char_offsets[i]);
-		current_x += gliv_get_char_width(label->font, char_offsets[i]);
+
+		uint8_t width = max_x - current_x; // image container width
+		uint8_t height = max_y - a_y; // image container height
+
+		gliv_image_t tmp_image = {
+			.x   = current_x,
+			.y   = a_y,
+			.width = width,
+			.height = height,
+			.bg_transparent = label->bg_transparent,
+			.color = label->color,
+			.res = &(const gliv_image_res_t){
+				.data   = label->font->data[char_offsets[i]],
+				.width  = label->font->widths[char_offsets[i]],
+				.height = label->font->height
+			}
+		};
+
+		gliv_draw_image(inst, &tmp_image);
+
+		current_x += label->font->widths[char_offsets[i]];
 		current_x++; // add space between characters
     }
-}
-
-static void gliv_draw_char(gliv_t* inst, uint8_t x, uint8_t y, uint8_t max_x, uint8_t max_y, const gliv_font_t* const font, gliv_color_t color, uint16_t char_offset)
-{
-	uint8_t width = max_x - x; // image container width
-	uint8_t height = max_y - y; // image container height
-
-	gliv_image_t tmp_image = {
-		.x   = x,
-		.y   = y,
-		.color = color,
-		.width = width,
-		.height = height,
-		.res = &(const gliv_image_res_t){
-			.data   = font->data[char_offset],
-			.width  = font->widths[char_offset],
-			.height = font->height
-		}
-	};
-
-	gliv_draw_image(inst, &tmp_image);
-}
-
-static uint8_t gliv_get_char_width(const gliv_font_t* const font, uint16_t char_offset)
-{
-	uint8_t width = font->widths[char_offset];
-	
-	return width;
 }
 
 static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
@@ -321,7 +319,7 @@ static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
 }
 
 // 4 bytes characters are not included
-static uint16_t utf8_to_unicode(const char *text, uint8_t *utf8_bytes)
+static uint16_t gliv_utf8_to_unicode(const char *text, uint8_t *utf8_bytes)
 {	
     *utf8_bytes = 0;
     uint16_t unicode = 0;
