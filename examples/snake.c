@@ -8,6 +8,7 @@
 #include "arial_bold_39_num.h"
 
 #define BASE_GAME_INTERVAL_MS 100
+#define CELL_SIZE 5  // Essentially scaling
 #define MAX_SNAKE_LENGTH (GLIV_MAX_WIDTH * GLIV_MAX_HEIGHT)
 
 typedef struct position_s {
@@ -176,10 +177,10 @@ int main() {
                 gliv_draw_pixel(&gliv_display, food.x, food.y, GLIV_COLOR_WHITE);
             } else {
                 gliv_fill(&gliv_display, GLIV_COLOR_BLACK);
-                gliv_label_t lbl_score = {.x = 0, .y = 0, .font = &arial_bold_39_num, .width = 128, .height = 64, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER};
-                snprintf(lbl_score.text, sizeof(lbl_score.text), "%d", score);
+                char score_string[6];
+                gliv_label_t lbl_score = {.x = 0, .y = 0, .font = &arial_bold_39_num, .width = 128, .height = 64, .color = GLIV_COLOR_WHITE, .align = GLIV_ALIGN_MIDDLE_CENTER, .bg_transparent = true, .text = score_string};
+                snprintf(score_string, sizeof(score_string), "%d", score);
                 gliv_draw_label(&gliv_display, &lbl_score);
-                
             }
             render_game();
         }
