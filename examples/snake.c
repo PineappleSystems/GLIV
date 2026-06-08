@@ -8,7 +8,6 @@
 #include "arial_bold_39_num.h"
 
 #define BASE_GAME_INTERVAL_MS 100
-#define CELL_SIZE 5  // Essentially scaling
 #define MAX_SNAKE_LENGTH (GLIV_MAX_WIDTH * GLIV_MAX_HEIGHT)
 
 typedef struct position_s {
