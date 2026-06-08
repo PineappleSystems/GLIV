@@ -16,8 +16,8 @@ static const uint32_t arial_bold_39_num_char_0039[] = {0x8000ff00, 0xffc007ff, 0
 
 static const uint32_t* arial_bold_39_num_font_data[] = {
     // Digits
-    arial_bold_39_num_char_0030, arial_bold_39_num_char_0031, arial_bold_39_num_char_0032, arial_bold_39_num_char_0033, 
-    arial_bold_39_num_char_0034, arial_bold_39_num_char_0035, arial_bold_39_num_char_0036, arial_bold_39_num_char_0037, 
+    arial_bold_39_num_char_0030, arial_bold_39_num_char_0031, arial_bold_39_num_char_0032, arial_bold_39_num_char_0033,
+    arial_bold_39_num_char_0034, arial_bold_39_num_char_0035, arial_bold_39_num_char_0036, arial_bold_39_num_char_0037,
     arial_bold_39_num_char_0038, arial_bold_39_num_char_0039,
 };
 
@@ -26,7 +26,7 @@ static const uint8_t arial_bold_39_num_font_widths[] = {
 };
 
 static const gliv_font_char_block_t arial_bold_39_num_font_char_blocks[] = {
-    { .first = 48, .last = 57, .offset = 0 },
+    { .first = 0x0030, .last = 0x0039, .offset = 0 },
 };
 
 const gliv_font_t arial_bold_39_num = {

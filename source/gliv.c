@@ -11,6 +11,8 @@ static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
                            gliv_align_t align, 
                            uint8_t *obj_x, uint8_t *obj_y);
 static uint16_t gliv_utf8_to_unicode(const char *text, uint8_t *utf8_bytes);
+static void gliv_coordinates_validation(const gliv_t* inst, uint8_t* x, uint8_t* y);
+static void gliv_dimensions_validation(const gliv_t* inst, uint8_t x, uint8_t y, uint8_t* width, uint8_t* height);
 
 /**
  * \brief Setting the value of a bit array to 1
@@ -59,7 +61,7 @@ void gliv_draw_pixel(gliv_t* inst, uint8_t x, uint8_t y, gliv_color_t color)
 	}
 }
 
-gliv_color_t gliv_get_pixel(gliv_t* inst, uint8_t x, uint8_t y)
+gliv_color_t gliv_get_pixel(const gliv_t* inst, uint8_t x, uint8_t y)
 {
     return (gliv_color_t)get_index(inst->buffer, inst->width * y + x);
 }
@@ -72,23 +74,9 @@ void gliv_draw_line(gliv_t* inst, gliv_line_t* line)
 	uint8_t y1 = line->y1;
 	int16_t dx, dy, sx, sy, err, e2; 
 	
-	// Boundary check. -1 due to zero-based indexing
-	if (x0 >= inst->width)
-	{
-		x0 = inst->width - 1;
-	}
-	if (x1 >= inst->width)
-	{
-		x1 = inst->width - 1;
-	}
-	if (y0 >= inst->height)
-	{
-		y0 = inst->height - 1;
-	}
-	if (y1 >= inst->height)
-	{
-		y1 = inst->height - 1;
-	}
+	// Coordinates validation
+	gliv_coordinates_validation(inst, &x0, &y0);
+	gliv_coordinates_validation(inst, &x1, &y1);
 
 	// Bresenham's line algorithm. Supports horizontal, vertical, and diagonal lines
 	dx = (x0 < x1) ? (x1 - x0) : (x0 - x1); // Absolute width delta
@@ -127,30 +115,30 @@ void gliv_draw_rectangle(gliv_t* inst, gliv_rectangle_t* rectangle)
     uint8_t h = rectangle->height;
     gliv_color_t color = rectangle->color; 
 
-	// Width and height validation
-	if ((x + w) >= inst->width)
-	{
-		w = inst->width - x;
-	}
-	if ((y + h) >= inst->height)
-	{
-		h = inst->height - y;
-	}
+	// Coordinates validation
+	gliv_coordinates_validation(inst, &x, &y);
+
+	// Dimensions validation
+	gliv_dimensions_validation(inst, x, y, &w, &h);
+
+	// -1 due to zero-based indexing
+	uint8_t x1 = x + (w - 1);
+	uint8_t y1 = y + (h - 1);
 	
 	// Draw the shape
 	if (rectangle->filled == GLIV_FILL_SOLID)
 	{
-		for (i = 0; i <= h; i++)
+		for (i = 0; i < h; i++)
 		{
-			gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y + i, .x1 = x + w, .y1 = y + i, .color = color});
+			gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y + i, .x1 = x1, .y1 = y + i, .color = color});
 		}
 	}
 	else // GLIV_FILL_NONE
 	{
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x + w, .y1 = y, .color = color}); // Top edge
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x, .y1 = y + h, .color = color}); // Left edge
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x + w, .y0 = y, .x1 = x + w, .y1 = y + h, .color = color}); // Right edge
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y + h, .x1 = x + w, .y1 = y + h, .color = color}); // Bottom edge
+		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x1, .y1 = y, .color = color}); // Top edge
+		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x, .y1 = y1, .color = color}); // Left edge
+		gliv_draw_line(inst, &(gliv_line_t){.x0 = x1, .y0 = y, .x1 = x1, .y1 = y1, .color = color}); // Right edge
+		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y1, .x1 = x1, .y1 = y1, .color = color}); // Bottom edge
 	}
 }
 
@@ -158,9 +146,17 @@ void gliv_draw_image(gliv_t* inst, gliv_image_t* image)
 {
 	uint8_t x = image->x;
 	uint8_t y = image->y;
+	uint8_t w = image->width;
+    uint8_t h = image->height;
 
-	uint8_t width = image->width >= image->res->width ? image->res->width : image->width;
-	uint8_t height = image->height >= image->res->height ? image->res->height : image->height;
+	// Coordinates validation
+	gliv_coordinates_validation(inst, &x, &y);
+
+	// Dimensions validation
+	gliv_dimensions_validation(inst, x, y, &w, &h);
+
+	uint8_t width = w >= image->res->width ? image->res->width : w;
+	uint8_t height = h >= image->res->height ? image->res->height : h;
 
     for(int img_x = 0; img_x < width; img_x++)
     {
@@ -181,19 +177,34 @@ void gliv_draw_image(gliv_t* inst, gliv_image_t* image)
 
 void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 {
-    uint8_t text_len = strlen(label->text); // String length in bytes
+	uint8_t x = label->x;
+	uint8_t y = label->y;
+	uint8_t w = label->width;
+    uint8_t h = label->height;
+
+	// Coordinates validation
+	gliv_coordinates_validation(inst, &x, &y);
+
+	// Dimensions validation
+	gliv_dimensions_validation(inst, x, y, &w, &h);
 
     // Calculate total text width in pixels and get characters offset
 	uint8_t byte_idx = 0;
 	uint8_t char_count = 0;
 	uint8_t utf8_bytes = 0;
-	uint8_t text_width = 0;
-	uint8_t text_heigth = 0;
-	uint16_t char_offsets[GLIV_LABEL_TEXT_MAX_LENGTH];
+	uint8_t txt_w = 0;
+	uint8_t txt_h = 0;
+	uint8_t txt_l = strlen(label->text); // String length in bytes	
+	uint32_t char_offsets[GLIV_LABEL_TEXT_MAX_LENGTH];
 
-    while (byte_idx < text_len && char_count < GLIV_LABEL_TEXT_MAX_LENGTH)
+	const uint32_t unknown_unicode = 0xFFFFFFFF;
+	const uint8_t unknown_unicode_w = label->font->widths[0] >= 4 ? label->font->widths[0] : 4;
+
+    while (byte_idx < txt_l && char_count < GLIV_LABEL_TEXT_MAX_LENGTH)
 	{
-		uint16_t unicode = gliv_utf8_to_unicode(&label->text[byte_idx], &utf8_bytes);
+		char_offsets[char_count] = unknown_unicode;
+
+		uint16_t unicode = gliv_utf8_to_unicode(&label->text[byte_idx], &utf8_bytes);		
 
 		if (utf8_bytes != 0)
 		{
@@ -202,10 +213,9 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 				if (unicode >= label->font->blocks[i].first && unicode <= label->font->blocks[i].last)
 				{
 					char_offsets[char_count] = label->font->blocks[i].offset + (unicode - label->font->blocks[i].first);
-					text_width += label->font->widths[char_offsets[char_count]];
-					char_count++;
+					txt_w += label->font->widths[char_offsets[char_count]];										
 					break;
-				}
+				}				
 			}
 			
 			byte_idx += utf8_bytes;
@@ -214,35 +224,41 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 		{
 			byte_idx++;
 		}
-        
+
+		if (char_offsets[char_count] == unknown_unicode)
+		{
+			txt_w += unknown_unicode_w;
+		}
+
+        char_count++;
     }
 
 	if (char_count > 0)
 	{
-		text_width += char_count - 1; // account for a 1-pixel gap between characters
+		txt_w += char_count - 1; // account for a 1-pixel gap between characters
 	}
 	
-	if (text_width > label->width)
+	if (txt_w > w)
 	{
-		text_width = label->width;
+		txt_w = w;
 	}
-	text_heigth = label->height > label->font->height ? label->font->height : label->height;
+	txt_h = h > label->font->height ? label->font->height : h;
 
 	// Fill label background if it is not transparent
 	if (!label->bg_transparent)
 	{
 		gliv_color_t background_color = label->color == GLIV_COLOR_WHITE ? GLIV_COLOR_BLACK : GLIV_COLOR_WHITE;
-		gliv_draw_rectangle(inst, &(gliv_rectangle_t){.x = label->x, .y = label->y, .width = label->width, .height = label->height, .color = background_color, .filled = GLIV_FILL_SOLID});
+		gliv_draw_rectangle(inst, &(gliv_rectangle_t){.x = x, .y = y, .width = w, .height = h, .color = background_color, .filled = GLIV_FILL_SOLID});
 	}
 
     // Calculate initial x and y coordinates based on alignment
 	uint8_t a_x = 0, a_y = 0;
-	gliv_get_aligned_pos(label->x, label->y, label->width, label->height, text_width, text_heigth, label->align, &a_x, &a_y);	
+	gliv_get_aligned_pos(x, y, w, h, txt_w, txt_h, label->align, &a_x, &a_y);	
 
     // Render each character of the text string
     uint8_t current_x = a_x;
-	uint8_t max_x = label->x + label->width;
-	uint8_t max_y = label->y + label->height;
+	uint8_t max_x = x + w;
+	uint8_t max_y = y + h;
 	
 	for (int i = 0; i < char_count; i++)
 	{
@@ -251,26 +267,41 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 			break;
 		}
 
-		uint8_t width = max_x - current_x; // image container width
-		uint8_t height = max_y - a_y; // image container height
+		uint8_t img_w = max_x - current_x; // image container width
+		uint8_t img_h = max_y - a_y; // image container height
 
-		gliv_image_t tmp_image = {
-			.x   = current_x,
-			.y   = a_y,
-			.width = width,
-			.height = height,
-			.bg_transparent = label->bg_transparent,
-			.color = label->color,
-			.res = &(const gliv_image_res_t){
-				.data   = label->font->data[char_offsets[i]],
-				.width  = label->font->widths[char_offsets[i]],
-				.height = label->font->height
-			}
-		};
+		if (char_offsets[i] == unknown_unicode)
+		{
+			gliv_draw_rectangle(inst, &(gliv_rectangle_t){
+				.x = current_x,
+				.y = a_y,
+				.width =  img_w >= unknown_unicode_w ? unknown_unicode_w : img_w,
+				.height = img_h >= label->font->height ? label->font->height : img_h,
+				.color = label->color,
+				.filled = GLIV_FILL_NONE
+			});
 
-		gliv_draw_image(inst, &tmp_image);
+			current_x += unknown_unicode_w;
+		}
+		else
+		{
+			gliv_draw_image(inst, &(gliv_image_t){
+				.x   = current_x,
+				.y   = a_y,
+				.width = img_w,
+				.height = img_h,
+				.bg_transparent = label->bg_transparent,
+				.color = label->color,
+				.res = &(const gliv_image_res_t){
+					.data   = label->font->data[char_offsets[i]],
+					.width  = label->font->widths[char_offsets[i]],
+					.height = label->font->height
+				}
+			});
 
-		current_x += label->font->widths[char_offsets[i]];
+			current_x += label->font->widths[char_offsets[i]];
+		}
+		
 		current_x++; // add space between characters
     }
 }
@@ -279,7 +310,7 @@ static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
 						   uint8_t area_w, uint8_t area_h, 
                            uint8_t obj_w, uint8_t obj_h, 
                            gliv_align_t align, 
-                           uint8_t *obj_x, uint8_t *obj_y)
+                           uint8_t* obj_x, uint8_t *obj_y)
 {
 	// Horizontal alignment
     switch (align)
@@ -319,7 +350,7 @@ static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
 }
 
 // 4 bytes characters are not included
-static uint16_t gliv_utf8_to_unicode(const char *text, uint8_t *utf8_bytes)
+static uint16_t gliv_utf8_to_unicode(const char* text, uint8_t* utf8_bytes)
 {	
     *utf8_bytes = 0;
     uint16_t unicode = 0;
@@ -354,4 +385,38 @@ static uint16_t gliv_utf8_to_unicode(const char *text, uint8_t *utf8_bytes)
     }
 
     return unicode;
+}
+
+static void gliv_coordinates_validation(const gliv_t* inst, uint8_t* x, uint8_t* y)
+{
+	// -1 due to zero-based indexing
+
+	// x validation
+	if (*x >= inst->width)
+	{
+		*x = inst->width - 1;
+	}
+
+	// y validation
+	if (*y >= inst->height)
+	{
+		*y = inst->height - 1;
+	}
+}
+
+static void gliv_dimensions_validation(const gliv_t* inst, uint8_t x, uint8_t y, uint8_t* width, uint8_t* height)
+{
+	// coordinates must be validated first
+
+	// width validation
+	if ((x + *width) > inst->width)
+	{
+		*width = inst->width - x;
+	}
+
+	// height validation
+	if ((y + *height) > inst->height)
+	{
+		*height = inst->height - y;
+	}
 }

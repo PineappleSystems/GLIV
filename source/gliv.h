@@ -163,7 +163,7 @@ void gliv_fill(gliv_t* inst, gliv_color_t color);
 
 void gliv_draw_pixel(gliv_t* inst, uint8_t x, uint8_t y, gliv_color_t color);
 
-gliv_color_t gliv_get_pixel(gliv_t* inst, uint8_t x, uint8_t y);
+gliv_color_t gliv_get_pixel(const gliv_t* inst, uint8_t x, uint8_t y);
 
 void gliv_draw_line(gliv_t* inst, gliv_line_t* line);
 
