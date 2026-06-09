@@ -105,8 +105,6 @@ static void draw_page_2(gliv_t *gliv_display) {
     gliv_draw_image(gliv_display, &(gliv_image_t){
         .x = (gliv_display->width - 52) / 2,
         .y = (gliv_display->height - 46) / 2,
-        .width = gliv_display->width,
-        .height = gliv_display->height,
         .bg_transparent = true,
         .color = GLIV_COLOR_BLACK,
         .res = &logo_image_res
@@ -157,17 +155,15 @@ static void draw_page_4(gliv_t *gliv_display) {
 
 static void draw_page_5(gliv_t *gliv_display) {
     gliv_fill(gliv_display, GLIV_COLOR_WHITE);
-    gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 7, .width = 128, .height = 57, .color = GLIV_COLOR_BLACK, .filled = GLIV_FILL_SOLID});
+    gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 7, .width = 128, .height = 57, .color = GLIV_COLOR_BLACK, .fill_mode = GLIV_FILL_SOLID});
     gliv_draw_image(gliv_display, &(gliv_image_t){
         .x = (gliv_display->width - 14) / 2,
         .y = 7 + (56 - 7) / 2,
-        .width = gliv_display->width,
-        .height = gliv_display->height,
         .bg_transparent = true,
         .color = GLIV_COLOR_WHITE,
         .res = &km_image_res
     });
-    gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 56, .width = 128, .height = 8, .color = GLIV_COLOR_WHITE, .filled = GLIV_FILL_NONE});
+    gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 56, .width = 128, .height = 8, .color = GLIV_COLOR_WHITE, .fill_mode = GLIV_FILL_NONE});
 }
 
 static void keyboard(struct mfb_window *window, mfb_key key, mfb_key_mod mod, bool is_pressed) {

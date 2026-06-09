@@ -8,7 +8,7 @@
 #define GLIV_MAX_WIDTH 128
 #define GLIV_MAX_HEIGHT 64
 
-#define GLIV_BITARRAY_WORD_BITS (8 * sizeof(unsigned int)) // Number of bits in one word
+#define GLIV_BITARRAY_WORD_BITS (8 * sizeof(uint8_t)) // Number of bits in one word
 
 #define GLIV_LABEL_TEXT_MAX_LENGTH 128
 
@@ -67,11 +67,11 @@ typedef struct gliv_line_s
 typedef struct gliv_rectangle_s
 {
     uint8_t x;
-    uint8_t y;    
+    uint8_t y;
     uint8_t width;
-    uint8_t height;    
+    uint8_t height;
     gliv_color_t color;
-    gliv_fill_mode_t filled;   
+    gliv_fill_mode_t fill_mode;
 } gliv_rectangle_t;
 
 /**
@@ -89,7 +89,7 @@ typedef struct gliv_font_char_block_s
  */
 typedef struct gliv_font_s
 {
-    const unsigned int** data;             // pointer to an array of font chars
+    const uint8_t** data;                  // pointer to an array of font chars
     const uint8_t* widths;                 // pointer to character widths
     const uint8_t height;
     const uint8_t num_of_blocks;
@@ -102,14 +102,14 @@ typedef struct gliv_font_s
 typedef struct gliv_label_s
 {
     uint8_t x;
-    uint8_t y;    
+    uint8_t y;
     char* text;
     uint8_t width;
     uint8_t height;
     bool bg_transparent; // true: transparent background, false: opaque
     gliv_color_t color; // text color (background color is inverted)
     gliv_align_t align;
-    const gliv_font_t* font;    
+    const gliv_font_t* font;
 } gliv_label_t;
 
 /**
@@ -119,7 +119,7 @@ typedef struct gliv_image_res_s
 {
     uint8_t width;
     uint8_t height;
-    const unsigned int* data; // pointer to a bit field with image data
+    const uint8_t* data; // pointer to a bit field with image data
 } gliv_image_res_t;
 
 /**
@@ -129,8 +129,6 @@ typedef struct gliv_image_s
 {
     uint8_t x;
     uint8_t y;
-    uint8_t width; // image container width
-    uint8_t height; // image container height
     bool bg_transparent; // true: transparent background, false: opaque
     gliv_color_t color; // image color (background color is inverted)
     const gliv_image_res_t* res; // pointer to a image resource
@@ -141,7 +139,7 @@ typedef struct gliv_image_s
  */
 typedef struct gliv_s
 {
-    unsigned int buffer[GLIV_MAX_WIDTH * GLIV_MAX_HEIGHT / GLIV_BITARRAY_WORD_BITS];
+    uint8_t buffer[GLIV_MAX_WIDTH * GLIV_MAX_HEIGHT / GLIV_BITARRAY_WORD_BITS];
     uint8_t width;
     uint8_t height;
 } gliv_t;
