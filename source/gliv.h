@@ -81,7 +81,7 @@ typedef struct gliv_font_char_block_s
 {
     const uint16_t first;          // first character code
     const uint16_t last;           // last character code
-    const uint16_t offset;         // block start position
+    const uint32_t offset;         // block start position in bytes
 } gliv_font_char_block_t;
 
 /**
@@ -89,7 +89,7 @@ typedef struct gliv_font_char_block_s
  */
 typedef struct gliv_font_s
 {
-    const uint8_t** data;                  // pointer to an array of font chars
+    const uint8_t* data;                   // pointer to an array of font chars
     const uint8_t* widths;                 // pointer to character widths
     const uint8_t height;
     const uint8_t num_of_blocks;

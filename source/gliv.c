@@ -168,6 +168,7 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 	uint8_t txt_w = 0;
 	uint8_t txt_h = 0;
 	uint8_t txt_l = strlen(label->text); // String length in bytes	
+	uint8_t char_width_offsets[GLIV_LABEL_TEXT_MAX_LENGTH];
 	uint32_t char_offsets[GLIV_LABEL_TEXT_MAX_LENGTH];
 
 	const uint32_t unknown_unicode = 0xFFFFFFFF;
@@ -178,17 +179,29 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 		char_offsets[char_count] = unknown_unicode;
 
 		uint16_t unicode = gliv_utf8_to_unicode(&label->text[byte_idx], &utf8_bytes);		
+		uint16_t font_char_idx = 0; // char id in font
+		uint16_t block_char_idx = 0; // char id in font block
 
 		if (utf8_bytes != 0)
 		{
 			for (int i = 0; i < label->font->num_of_blocks; i++)
 			{
 				if (unicode >= label->font->blocks[i].first && unicode <= label->font->blocks[i].last)
-				{
-					char_offsets[char_count] = label->font->blocks[i].offset + (unicode - label->font->blocks[i].first);
-					txt_w += label->font->widths[char_offsets[char_count]];										
+				{	
+					block_char_idx = unicode - label->font->blocks[i].first;					
+					char_offsets[char_count] = label->font->blocks[i].offset;
+					for (int char_idx = 0; char_idx < block_char_idx; char_idx++)
+					{
+						// integer ceiling division
+						char_offsets[char_count] += ((uint32_t)label->font->widths[font_char_idx + char_idx] * label->font->height + (GLIV_BITARRAY_WORD_BITS - 1)) / GLIV_BITARRAY_WORD_BITS;
+					}					
+					font_char_idx += block_char_idx;
+					char_width_offsets[char_count] = font_char_idx;				
+					txt_w += label->font->widths[font_char_idx];										
 					break;
-				}				
+				}
+				
+				font_char_idx += label->font->blocks[i].last - label->font->blocks[i].first + 1; // now char id is first char id of next block
 			}
 			
 			byte_idx += utf8_bytes;
@@ -264,13 +277,13 @@ void gliv_draw_label(gliv_t* inst, gliv_label_t* label)
 				.bg_transparent = label->bg_transparent,
 				.color = label->color,
 				.res = &(const gliv_image_res_t){
-					.data   = label->font->data[char_offsets[i]],
-					.width  = label->font->widths[char_offsets[i]],
+					.data   = &label->font->data[char_offsets[i]],
+					.width  = label->font->widths[char_width_offsets[i]],
 					.height = label->font->height
 				}
 			});
 
-			current_x += label->font->widths[char_offsets[i]];
+			current_x += label->font->widths[char_width_offsets[i]];
 		}
 		
 		current_x++; // add space between characters
