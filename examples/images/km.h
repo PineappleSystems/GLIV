@@ -3,14 +3,6 @@
 
 #include "gliv.h"
 
-static const uint8_t km_image_data[] = {
-    0xdb, 0xfb, 0xf3, 0xff, 0x6c, 0x7f, 0xdb, 0xdb, 0xf6, 0xb6, 0xbd, 0x6d, 0x03
-};
-
-static const gliv_image_res_t km_image_res = {
-    .width  = 14,
-    .height = 7,
-    .data   = km_image_data
-};
+extern const gliv_image_res_t km_image_res;
 
 #endif /* KM_H */

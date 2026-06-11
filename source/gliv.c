@@ -116,6 +116,9 @@ void gliv_draw_rectangle(gliv_t* inst, gliv_rectangle_t* rectangle)
     uint8_t h = rectangle->height;
     gliv_color_t color = rectangle->color; 
 
+	uint16_t orig_x1 = (uint16_t)x + w - 1;
+	uint16_t orig_y1 = (uint16_t)y + h - 1;
+
 	// Coordinates validation
 	gliv_coordinates_validation(inst, &x, &y);
 
@@ -127,19 +130,30 @@ void gliv_draw_rectangle(gliv_t* inst, gliv_rectangle_t* rectangle)
 	uint8_t y1 = y + (h - 1);
 	
 	// Draw the shape
-	if (rectangle->fill_mode == GLIV_FILL_SOLID)
+	switch (rectangle->fill_mode)
 	{
-		for (i = 0; i < h; i++)
-		{
-			gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y + i, .x1 = x1, .y1 = y + i, .color = color});
-		}
-	}
-	else // GLIV_FILL_NONE
-	{
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x1, .y1 = y, .color = color}); // Top edge
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x, .y1 = y1, .color = color}); // Left edge
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x1, .y0 = y, .x1 = x1, .y1 = y1, .color = color}); // Right edge
-		gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y1, .x1 = x1, .y1 = y1, .color = color}); // Bottom edge
+		case GLIV_FILL_SOLID:
+			for (i = 0; i < h; i++)
+			{
+				gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y + i, .x1 = x1, .y1 = y + i, .color = color});
+			}
+			break;
+
+		case GLIV_FILL_NONE:
+			gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x1, .y1 = y, .color = color}); // Top edge
+			gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y, .x1 = x, .y1 = y1, .color = color}); // Left edge
+			if (orig_x1 < inst->width)
+			{
+				gliv_draw_line(inst, &(gliv_line_t){.x0 = x1, .y0 = y, .x1 = x1, .y1 = y1, .color = color}); // Right edge
+			}
+			if (orig_y1 < inst->height)
+			{
+				gliv_draw_line(inst, &(gliv_line_t){.x0 = x, .y0 = y1, .x1 = x1, .y1 = y1, .color = color}); // Bottom edge
+			}
+			break;
+
+		default:
+			break;
 	}
 }
 

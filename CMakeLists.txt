@@ -17,7 +17,12 @@ add_subdirectory(submodules/minifb)
 
 # ----------- examples -----------
 # pages
-add_executable(gliv_windows_minifb_example examples/pages.c)
+add_executable(gliv_windows_minifb_example
+    examples/pages.c
+    examples/images/km.c
+    examples/images/logo.c
+    examples/fonts/arial_14.c
+    examples/fonts/arial_bold_39_num.c)
 
 target_link_libraries(gliv_windows_minifb_example PRIVATE
     gliv
@@ -35,7 +40,9 @@ target_include_directories(gliv_windows_pbm_export_example PUBLIC
 )
 
 # snake
-add_executable(gliv_windows_snake_example examples/snake.c)
+add_executable(gliv_windows_snake_example 
+    examples/snake.c
+    examples/fonts/arial_bold_39_num.c)
 
 target_link_libraries(gliv_windows_snake_example PRIVATE
     gliv

@@ -90,21 +90,25 @@ int main() {
 }
 
 static void draw_page_1(gliv_t *gliv_display) {
+    // -1 due to zero-based indexing
+    const uint8_t max_x = gliv_display->width - 1;
+    const uint8_t max_y = gliv_display->height - 1;
+
     gliv_fill(gliv_display, GLIV_COLOR_WHITE);
     gliv_draw_pixel(gliv_display, 1, 0, GLIV_COLOR_BLACK);
 
-    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 0, .x1 = 0, .y1 = 63, .color = GLIV_COLOR_BLACK});
-    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 63, .x1 = 63, .y1 = 0, .color = GLIV_COLOR_BLACK});
-    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 63, .x1 = 127, .y1 = 0, .color = GLIV_COLOR_BLACK});
-    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 63, .x1 = 127, .y1 = 32, .color = GLIV_COLOR_BLACK});
-    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 63, .x1 = 127, .y1 = 63, .color = GLIV_COLOR_BLACK});
+    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = 0, .x1 = 0, .y1 = max_y, .color = GLIV_COLOR_BLACK});
+    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = max_y, .x1 = max_x / 2, .y1 = 0, .color = GLIV_COLOR_BLACK});
+    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = max_y, .x1 = max_x, .y1 = 0, .color = GLIV_COLOR_BLACK});
+    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = max_y, .x1 = max_x, .y1 = max_y / 2, .color = GLIV_COLOR_BLACK});
+    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = max_y, .x1 = max_x, .y1 = max_y, .color = GLIV_COLOR_BLACK});
 }
 
 static void draw_page_2(gliv_t *gliv_display) {
     gliv_fill(gliv_display, GLIV_COLOR_WHITE);
     gliv_draw_image(gliv_display, &(gliv_image_t){
-        .x = (gliv_display->width - 52) / 2,
-        .y = (gliv_display->height - 46) / 2,
+        .x = (gliv_display->width - logo_image_res.width) / 2,
+        .y = (gliv_display->height - logo_image_res.height) / 2,
         .bg_transparent = true,
         .color = GLIV_COLOR_BLACK,
         .res = &logo_image_res
@@ -112,14 +116,20 @@ static void draw_page_2(gliv_t *gliv_display) {
 }
 
 static void draw_page_3(gliv_t *gliv_display) {
+    // -1 due to zero-based indexing
+    const uint8_t max_x = gliv_display->width - 1;
+    const uint8_t max_y = gliv_display->height - 1;
+
+    const uint8_t line_y = max_y / 2;
+
     gliv_fill(gliv_display, GLIV_COLOR_BLACK);
-    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = gliv_display->height / 2, .x1 = gliv_display->width, .y1 = gliv_display->height / 2, .color = GLIV_COLOR_WHITE});
+    gliv_draw_line(gliv_display, &(gliv_line_t){.x0 = 0, .y0 = line_y, .x1 = max_x, .y1 = line_y, .color = GLIV_COLOR_WHITE});
     gliv_draw_label(gliv_display, &(gliv_label_t){
         .x = 0,
         .y = 0,
         .font = &arial_14,
-        .width = 128,
-        .height = 31,
+        .width = gliv_display->width,
+        .height = line_y, // without overlapping the line
         .bg_transparent = true,
         .color = GLIV_COLOR_WHITE,
         .align = GLIV_ALIGN_MIDDLE_CENTER,
@@ -127,10 +137,10 @@ static void draw_page_3(gliv_t *gliv_display) {
     });
     gliv_draw_label(gliv_display, &(gliv_label_t){
         .x = 0,
-        .y = 33,
+        .y = line_y + 1,
         .font = &arial_14,
-        .width = 128,
-        .height = 30,
+        .width = gliv_display->width,
+        .height = gliv_display->height - line_y,
         .bg_transparent = true,
         .color = GLIV_COLOR_WHITE,
         .align = GLIV_ALIGN_MIDDLE_CENTER,
@@ -144,8 +154,8 @@ static void draw_page_4(gliv_t *gliv_display) {
         .x = 0,
         .y = 0,
         .font = &arial_bold_39_num,
-        .width = 128,
-        .height = 64,
+        .width = gliv_display->width,
+        .height = gliv_display->height,
         .bg_transparent = true,
         .color = GLIV_COLOR_WHITE,
         .align = GLIV_ALIGN_MIDDLE_CENTER,
@@ -154,16 +164,28 @@ static void draw_page_4(gliv_t *gliv_display) {
 }
 
 static void draw_page_5(gliv_t *gliv_display) {
+    // -1 due to zero-based indexing
+    const uint8_t max_x = gliv_display->width - 1;
+    const uint8_t max_y = gliv_display->height - 1;
+
+    const uint8_t rec1_y = 7;
+    const uint8_t rec1_w = gliv_display->width;
+    const uint8_t rec1_h = gliv_display->height - rec1_y;
+
+    const uint8_t rec2_y = 56;
+    const uint8_t rec2_w = gliv_display->width;
+    const uint8_t rec2_h = gliv_display->height - rec2_y;
+
     gliv_fill(gliv_display, GLIV_COLOR_WHITE);
-    gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 7, .width = 128, .height = 57, .color = GLIV_COLOR_BLACK, .fill_mode = GLIV_FILL_SOLID});
+    gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = rec1_y, .width = rec1_w, .height = rec1_h, .color = GLIV_COLOR_BLACK, .fill_mode = GLIV_FILL_SOLID});
     gliv_draw_image(gliv_display, &(gliv_image_t){
-        .x = (gliv_display->width - 14) / 2,
-        .y = 7 + (56 - 7) / 2,
+        .x = (gliv_display->width - km_image_res.width) / 2,
+        .y = rec1_y + (rec1_h - km_image_res.height) / 2,
         .bg_transparent = true,
         .color = GLIV_COLOR_WHITE,
         .res = &km_image_res
     });
-    gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = 56, .width = 128, .height = 8, .color = GLIV_COLOR_WHITE, .fill_mode = GLIV_FILL_NONE});
+    gliv_draw_rectangle(gliv_display, &(gliv_rectangle_t){.x = 0, .y = rec2_y, .width = rec2_w, .height = rec2_h, .color = GLIV_COLOR_WHITE, .fill_mode = GLIV_FILL_NONE});
 }
 
 static void keyboard(struct mfb_window *window, mfb_key key, mfb_key_mod mod, bool is_pressed) {
