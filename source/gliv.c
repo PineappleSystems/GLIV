@@ -12,8 +12,8 @@ static void gliv_get_aligned_pos(uint8_t area_x, uint8_t area_y,
                            gliv_align_t align, 
                            uint8_t* obj_x, uint8_t* obj_y);
 static uint16_t gliv_utf8_to_unicode(const char* text, uint8_t* utf8_bytes);
-static void gliv_coordinates_validation(const gliv_t* inst, uint8_t* x, uint8_t* y);
-static void gliv_dimensions_validation(const gliv_t* inst, uint8_t x, uint8_t y, uint8_t* width, uint8_t* height);
+static inline void gliv_coordinates_validation(const gliv_t* inst, uint8_t* x, uint8_t* y);
+static inline void gliv_dimensions_validation(const gliv_t* inst, uint8_t x, uint8_t y, uint8_t* width, uint8_t* height);
 
 /**
  * \brief Setting the value of a bit array to 1
@@ -418,7 +418,7 @@ static uint16_t gliv_utf8_to_unicode(const char* text, uint8_t* utf8_bytes)
     return unicode;
 }
 
-static void gliv_coordinates_validation(const gliv_t* inst, uint8_t* x, uint8_t* y)
+static inline void gliv_coordinates_validation(const gliv_t* inst, uint8_t* x, uint8_t* y)
 {
 	// -1 due to zero-based indexing
 
@@ -435,7 +435,7 @@ static void gliv_coordinates_validation(const gliv_t* inst, uint8_t* x, uint8_t*
 	}
 }
 
-static void gliv_dimensions_validation(const gliv_t* inst, uint8_t x, uint8_t y, uint8_t* width, uint8_t* height)
+static inline void gliv_dimensions_validation(const gliv_t* inst, uint8_t x, uint8_t y, uint8_t* width, uint8_t* height)
 {
 	// coordinates must be validated first
 

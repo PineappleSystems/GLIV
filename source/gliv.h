@@ -17,8 +17,8 @@
  */
 typedef enum gliv_color_e
 {
-    GLIV_COLOR_BLACK = 0,
-    GLIV_COLOR_WHITE,
+    GLIV_COLOR_BLACK = 0, // area/pixel doesn't emit light
+    GLIV_COLOR_WHITE = 1, // area/pixel emits light 
 } gliv_color_t;
 
 /**
@@ -26,8 +26,8 @@ typedef enum gliv_color_e
  */
 typedef enum gliv_fill_mode_e
 {
-    GLIV_FILL_NONE,      // Outline only (hollow shape)
-    GLIV_FILL_SOLID,     // Solid fill with line color
+    GLIV_FILL_NONE,        // Outline only (hollow shape)
+    GLIV_FILL_SOLID,       // Solid fill with line color
     //GLIV_FILL_DITHER_50, // Dithering (50% checkerboard pattern)
     //GLIV_FILL_V_LINES,   // Vertical line hatching
     //GLIV_FILL_H_LINES    // Horizontal line hatching
@@ -107,7 +107,7 @@ typedef struct gliv_label_s
     uint8_t width;
     uint8_t height;
     bool bg_transparent; // true: transparent background, false: opaque
-    gliv_color_t color; // text color (background color is inverted)
+    gliv_color_t color;  // text color (background color is inverted)
     gliv_align_t align;
     const gliv_font_t* font;
 } gliv_label_t;
@@ -129,8 +129,8 @@ typedef struct gliv_image_s
 {
     uint8_t x;
     uint8_t y;
-    bool bg_transparent; // true: transparent background, false: opaque
-    gliv_color_t color; // image color (background color is inverted)
+    bool bg_transparent;         // true: transparent background, false: opaque
+    gliv_color_t color;          // image color (background color is inverted)
     const gliv_image_res_t* res; // pointer to a image resource
 } gliv_image_t;
 
